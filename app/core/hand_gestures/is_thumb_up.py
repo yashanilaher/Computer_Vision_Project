@@ -1,19 +1,18 @@
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
+
 from . import mp_hands
-from .pydantic_models import HandLandmarksModel, ThumbUpCheckModel
+from .pydantic_models import ThumbUpCheckModel
 
 
 def is_thumb_up(hand_landmarks) -> ThumbUpCheckModel:
-    """
-    Detect thumb up gesture - thumb extended upward, other fingers closed.
+    """Detect thumb up gesture - thumb extended upward, other fingers closed.
 
     Args:
         hand_landmarks: Hand landmarks detected using MediaPipe.
 
     Returns:
         ThumbUpCheckModel: Model indicating whether the thumb up gesture is detected.
+
     """
     logger.debug("is_thumb_up() called to detect thumb up gesture")
 
@@ -48,7 +47,7 @@ def is_thumb_up(hand_landmarks) -> ThumbUpCheckModel:
 
         logger.debug(
             f"Finger closure check: index_closed={index_closed}, middle_closed={middle_closed}, "
-            f"ring_closed={ring_closed}, pinky_closed={pinky_closed}"
+            f"ring_closed={ring_closed}, pinky_closed={pinky_closed}",
         )
 
         # Additional check that thumb is significantly extended

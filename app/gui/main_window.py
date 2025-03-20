@@ -1,41 +1,38 @@
-import streamlit as st
-import cv2
-import numpy as np
-import mediapipe as mp
-import pyautogui
-import time
-import requests
 import base64
-
 import os
-import sys
-from pathlib import Path
-import webbrowser
-from loguru import logger
 import subprocess
+import sys
+import time
+import webbrowser
+from pathlib import Path
+
+import cv2
+import mediapipe as mp
+import numpy as np
+import pyautogui
+import requests
+import streamlit as st
+from loguru import logger
 
 # Add parent directory  to path to import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import your existing functions
-from core.body_gestures.detect_pose import detectPose
 from core.body_gestures.check_hands_joined import checkHandsJoined
 from core.body_gestures.check_horizontal_movement import checkLeftRight
 from core.body_gestures.check_vertical_movement import checkJumpCrouch
+from core.body_gestures.detect_pose import detectPose
 from core.hand_gestures.detect_gestures import detect_gestures
-
-from loguru import logger
 from utils.config_types import LoggingConfigs
 from utils.logging_client import setup_network_logger_client
 
 
 def start_logging_server():
-    """
-    Start the logging server in the background automatically.
+    """Start the logging server in the background automatically.
     """
     # Path to configs.toml in utils/
     config_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils", "configs.toml"))
-    
+
     # Path to logging_server.py in utils/
     logging_server_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "utils", "logging_server.py"))
 
@@ -63,17 +60,17 @@ logging_server_process = start_logging_server()
 
 
 def setup_logging(config_file_path: str) -> None:
-    """
-    Set up logging using the provided configuration file.
+    """Set up logging using the provided configuration file.
 
     Args:
         config_file_path: Path to the logging configuration file.
+
     """
     logging_configs = LoggingConfigs.load_from_path(Path(config_file_path))
     if not logging_configs:
         print("❌ Failed to load logging configurations!")
         return
-    
+
     # Set up the network logger client with the loaded configurations
     setup_network_logger_client(logging_configs, logger)
     logger.info("✅ Logging initialized successfully.")
@@ -82,13 +79,13 @@ class GestureRecognitionApp:
     def __init__(self):
         # Initialize mediapipe pose class for body gestures
         self.mp_pose = mp.solutions.pose
-        self.pose_video = self.mp_pose.Pose(static_image_mode=False, model_complexity=1, 
+        self.pose_video = self.mp_pose.Pose(static_image_mode=False, model_complexity=1,
                                            min_detection_confidence=0.7, min_tracking_confidence=0.7)
         # Initialize mediapipe hands class for hand gestures
         self.mp_hands = mp.solutions.hands
         self.mp_drawing = mp.solutions.drawing_utils
-        self.hands = self.mp_hands.Hands(static_image_mode=False, 
-                                         max_num_hands=1, 
+        self.hands = self.mp_hands.Hands(static_image_mode=False,
+                                         max_num_hands=1,
                                          min_detection_confidence=0.7,
                                          min_tracking_confidence=0.7)
         # Hand gesture specific variables
@@ -109,7 +106,7 @@ class GestureRecognitionApp:
         # API client setup
         self.api_endpoints = {
             "FastAPI": "http://localhost:8000",
-            "BentoML": "http://localhost:3000"
+            "BentoML": "http://localhost:3000",
         }
         self.client_mode = "local"  # "local", "api", or "bentoml"
         self.gesture_type = "body"  # "body" or "hands"
@@ -150,7 +147,7 @@ class GestureRecognitionApp:
     def start_game(self):
         """Start the game by clicking at the specified position"""
         if not self.game_started:
-            pyautogui.click(x=1300, y=800, button='left')
+            pyautogui.click(x=1300, y=800, button="left")
             self.game_started = True
             logger.info("Game started.")
             return "Game started"
@@ -158,8 +155,7 @@ class GestureRecognitionApp:
         return "Game already started"
 
     def process_frame_local_hands(self, frame):
-        """
-        Process a frame locally using hand gesture recognition
+        """Process a frame locally using hand gesture recognition
         Args:
             frame: The input frame from the camera
         Returns:
@@ -182,9 +178,9 @@ class GestureRecognitionApp:
             status_info += "Hand detected: Yes\n"
             for hand_landmarks in results.multi_hand_landmarks:
                 self.mp_drawing.draw_landmarks(
-                    frame, 
-                    hand_landmarks, 
-                    self.mp_hands.HAND_CONNECTIONS
+                    frame,
+                    hand_landmarks,
+                    self.mp_hands.HAND_CONNECTIONS,
                 )
                 # Detect gestures and control the game
                 debug_info = detect_gestures(hand_landmarks)
@@ -194,19 +190,19 @@ class GestureRecognitionApp:
                     logger.info(f"Detected action: {debug_info.action}")
                     # Perform actions based on gesture detection
                     if debug_info.action == "left":
-                        pyautogui.press('left')
+                        pyautogui.press("left")
                     elif debug_info.action == "right":
-                        pyautogui.press('right')
+                        pyautogui.press("right")
                     elif debug_info.action == "up":
-                        pyautogui.press('up')
+                        pyautogui.press("up")
                     elif debug_info.action == "down":
-                        pyautogui.press('down')
+                        pyautogui.press("down")
                     elif debug_info.action == "space":
-                        pyautogui.press('space')
+                        pyautogui.press("space")
                         # If we're not started, start the game
                         if not self.game_started:
                             self.game_started = True
-                            pyautogui.click(x=1300, y=800, button='left')
+                            pyautogui.click(x=1300, y=800, button="left")
                 # Add detailed info to status
                 status_info += f"State: {debug_info.state}\n"
                 status_info += f"In neutral: {debug_info.in_neutral}\n"
@@ -221,31 +217,31 @@ class GestureRecognitionApp:
         center_y = int(image_height * self.neutral_zone_y)
         zone_size_x = int(image_width * self.neutral_zone_size)
         zone_size_y = int(image_height * self.neutral_zone_size)
-        cv2.rectangle(frame, 
+        cv2.rectangle(frame,
                       (center_x - zone_size_x, center_y - zone_size_y),
                       (center_x + zone_size_x, center_y + zone_size_y),
                       (0, 255, 0) if self.in_neutral_zone else (0, 0, 255),
                       2)
         # Display current state
-        cv2.putText(frame, f"State: {self.current_state[0]}", (10, 30), 
+        cv2.putText(frame, f"State: {self.current_state[0]}", (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         # Display control instructions
-        cv2.putText(frame, "Return to green box between gestures", (10, 60), 
+        cv2.putText(frame, "Return to green box between gestures", (10, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(frame, "Move hand left/right to turn", (10, 90), 
+        cv2.putText(frame, "Move hand left/right to turn", (10, 90),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(frame, "Move hand down to slide", (10, 120), 
+        cv2.putText(frame, "Move hand down to slide", (10, 120),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(frame, "Move hand up to jump", (10, 150), 
+        cv2.putText(frame, "Move hand up to jump", (10, 150),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-        cv2.putText(frame, "Thumb up to press space", (10, 180), 
+        cv2.putText(frame, "Thumb up to press space", (10, 180),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         # Calculate FPS
         time2 = time.time()
         if (time2 - self.time1) > 0:
             fps = 1.0 / (time2 - self.time1)
             status_info += f"FPS: {int(fps)}\n"
-            cv2.putText(frame, f'FPS: {int(fps)}', (10, image_height - 30), 
+            cv2.putText(frame, f"FPS: {int(fps)}", (10, image_height - 30),
                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
         # Update the previous frame time
         self.time1 = time2
@@ -253,8 +249,7 @@ class GestureRecognitionApp:
         return frame, status_info
 
     def process_frame_local_body(self, frame):
-        """
-        Process a frame locally using body posture recognition
+        """Process a frame locally using body posture recognition
         Args:
             frame: The input frame from the camera
         Returns:
@@ -281,15 +276,15 @@ class GestureRecognitionApp:
                 status_info += f"Horizontal position: {horizontal_position}\n"
                 logger.info(f"Horizontal position: {horizontal_position}")
                 # Check if the person has moved left or right
-                if (horizontal_position == 'Left' and self.x_pos_index != 0) or (horizontal_position == 'Center' and self.x_pos_index == 2):
+                if (horizontal_position == "Left" and self.x_pos_index != 0) or (horizontal_position == "Center" and self.x_pos_index == 2):
                     # Left movement
-                    pyautogui.press('left')
+                    pyautogui.press("left")
                     self.x_pos_index -= 1
                     status_info += "Action: Move left\n"
                     logger.info("Action: Move left")
-                elif (horizontal_position == 'Right' and self.x_pos_index != 2) or (horizontal_position == 'Center' and self.x_pos_index == 0):
+                elif (horizontal_position == "Right" and self.x_pos_index != 2) or (horizontal_position == "Center" and self.x_pos_index == 0):
                     # Right movement
-                    pyautogui.press('right')
+                    pyautogui.press("right")
                     self.x_pos_index += 1
                     status_info += "Action: Move right\n"
                     logger.info("Action: Move right")
@@ -299,19 +294,19 @@ class GestureRecognitionApp:
                     status_info += f"Vertical position: {posture}\n"
                     logger.info(f"Vertical position: {posture}")
                     # Check if the person has jumped
-                    if posture == 'Jumping' and self.y_pos_index == 1:
-                        pyautogui.press('up')
+                    if posture == "Jumping" and self.y_pos_index == 1:
+                        pyautogui.press("up")
                         self.y_pos_index += 1
                         status_info += "Action: Jump\n"
                         logger.info("Action: Jump")
                     # Check if the person has crouched
-                    elif posture == 'Crouching' and self.y_pos_index == 1:
-                        pyautogui.press('down')
+                    elif posture == "Crouching" and self.y_pos_index == 1:
+                        pyautogui.press("down")
                         self.y_pos_index -= 1
                         status_info += "Action: Crouch\n"
                         logger.info("Action: Crouch")
                     # Check if the person has stood up
-                    elif posture == 'Standing' and self.y_pos_index != 1:
+                    elif posture == "Standing" and self.y_pos_index != 1:
                         self.y_pos_index = 1
                         status_info += "Action: Stand\n"
                         logger.info("Action: Stand")
@@ -319,14 +314,14 @@ class GestureRecognitionApp:
                 status_info += "Game started: No\n"
                 logger.info("Game not started.")
                 # Show instructions to start the game
-                cv2.putText(frame, 'JOIN BOTH HANDS TO START THE GAME.', (5, frame_height - 10), 
+                cv2.putText(frame, "JOIN BOTH HANDS TO START THE GAME.", (5, frame_height - 10),
                            cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
             # Check if hands are joined
             frame, hands_status = checkHandsJoined(frame, results)
             status_info += f"Hands status: {hands_status}\n"
             logger.info(f"Hands status: {hands_status}")
             # Handle hands joined action
-            if hands_status == 'Hands Joined':
+            if hands_status == "Hands Joined":
                 # Increment counter
                 self.counter += 1
                 status_info += f"Counter: {self.counter}/{self.num_of_frames}\n"
@@ -344,12 +339,12 @@ class GestureRecognitionApp:
                         status_info += f"MID_Y reference set: {self.MID_Y}\n"
                         logger.info(f"MID_Y reference set: {self.MID_Y}")
                         # Start the game by clicking at specified position
-                        pyautogui.click(x=1300, y=800, button='left')
+                        pyautogui.click(x=1300, y=800, button="left")
                         status_info += "Game started\n"
                         logger.info("Game started.")
                     else:
                         # Resume the game after death
-                        pyautogui.press('space')
+                        pyautogui.press("space")
                         status_info += "Game resumed\n"
                         logger.info("Game resumed.")
                     # Reset counter
@@ -368,15 +363,14 @@ class GestureRecognitionApp:
         if (time2 - self.time1) > 0:
             fps = 1.0 / (time2 - self.time1)
             status_info += f"FPS: {int(fps)}\n"
-            cv2.putText(frame, f'FPS: {int(fps)}', (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
+            cv2.putText(frame, f"FPS: {int(fps)}", (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 3)
         # Update the previous frame time
         self.time1 = time2
         logger.info("Frame processing completed.")
         return frame, status_info
 
     def process_frame_local(self, frame):
-        """
-        Process a frame locally based on the selected gesture type
+        """Process a frame locally based on the selected gesture type
         Args:
             frame: The input frame from the camera
         Returns:
@@ -384,33 +378,34 @@ class GestureRecognitionApp:
         """
         if self.gesture_type == "hands":
             return self.process_frame_local_hands(frame)
-        else:
-            return self.process_frame_local_body(frame)
+        return self.process_frame_local_body(frame)
 
     def process_frame_api_generic(self, frame, api_type="FastAPI"):
-        """
-        Process a frame by sending it to the specified API server.
+        """Process a frame by sending it to the specified API server.
+
         Args:
             frame: The input frame from the camera.
             api_type: The API type ("FastAPI" or "BentoML").
+
         Returns:
             Tuple containing processed frame and status info.
+
         """
         logger.info(f"Starting frame processing via {api_type} API.")
-        
+
         # Get the API endpoint
         api_url = self.api_endpoints.get(api_type, "http://localhost:8000")
         logger.debug(f"Using API URL: {api_url}")
-        
+
         # Flip the frame horizontally for natural (selfie-view) visualization
         frame = cv2.flip(frame, 1)
         logger.debug("Frame flipped horizontally.")
-        
+
         # Encode the frame as base64
         _, buffer = cv2.imencode(".jpg", frame)
         encoded_frame = base64.b64encode(buffer).decode("utf-8")
         logger.debug("Frame encoded as base64.")
-        
+
         # Prepare the payload
         if api_type == "FastAPI":
             # FastAPI expects form data with a file
@@ -423,13 +418,13 @@ class GestureRecognitionApp:
                 "gesture_type": self.gesture_type,  # Add gesture type parameter
             }
             logger.debug("Payload prepared for FastAPI request.")
-            
+
             # Send the request to the API
             try:
                 logger.info("Sending POST request to FastAPI server.")
                 response = requests.post(f"{api_url}/process_frame", files=files, params=params, timeout=5)
                 logger.debug(f"FastAPI response received. Status code: {response.status_code}")
-                
+
                 if response.status_code != 200:
                     logger.error(f"FastAPI Error: Received status code {response.status_code}")
                     return frame, f"FastAPI Error: Received status code {response.status_code}"
@@ -446,7 +441,7 @@ class GestureRecognitionApp:
             except Exception as e:
                 logger.error(f"FastAPI Error: {e!s}")
                 return frame, f"FastAPI Error: {e!s}"
-        
+
         elif api_type == "BentoML":
             # BentoML expects JSON with base64 encoded image
             payload = {
@@ -458,17 +453,17 @@ class GestureRecognitionApp:
                 },
             }
             logger.debug("Payload prepared for BentoML request.")
-            
+
             # Send the request to the API
             try:
                 logger.info("Sending POST request to BentoML server.")
                 response = requests.post(f"{api_url}/process_frame", json=payload, timeout=5)
                 logger.debug(f"BentoML response received. Status code: {response.status_code}")
-                
+
                 if response.status_code != 200:
                     logger.error(f"BentoML Error: Received status code {response.status_code}")
                     return frame, f"BentoML Error: Received status code {response.status_code}"
-                
+
                 # Print the raw response for debugging
                 logger.debug(f"BentoML API Response: {response.text[:500]}...")
                 response_data = response.json()
@@ -484,41 +479,41 @@ class GestureRecognitionApp:
             except Exception as e:
                 logger.error(f"BentoML Error: {e!s}")
                 return frame, f"BentoML Error: {e!s}"
-        
+
         else:
             logger.error(f"Unknown API type '{api_type}'")
             return frame, f"Error: Unknown API type '{api_type}'"
-        
+
         # Process the response
         if response_data.get("success", False):
             logger.info("API response indicates success. Processing response data.")
-            
+
             # Decode the processed frame
             try:
                 processed_frame = base64.b64decode(response_data["data"]["frame"])
                 processed_frame = np.frombuffer(processed_frame, dtype=np.uint8)
                 processed_frame = cv2.imdecode(processed_frame, cv2.IMREAD_COLOR)
-                
+
                 if processed_frame is None:
                     logger.error(f"{api_type} Error: Failed to decode processed frame.")
                     return frame, f"{api_type} Error: Failed to decode processed frame."
-                
+
                 # Extract results
                 results = response_data["data"].get("results", {})
                 logger.debug(f"Extracted results: {results}")
-                
+
                 # Handle different detection types
                 if self.gesture_type == "hands":
                     # Update hand gesture state
                     if "current_state" in response_data["data"]:
                         self.current_state[0] = response_data["data"]["current_state"]
                         logger.debug(f"Updated current state: {self.current_state[0]}")
-                    
+
                     # Handle hand gesture actions
                     if results.get("action"):
                         action = results["action"]
                         logger.info(f"Detected hand gesture action: {action}")
-                        
+
                         if action == "left":
                             pyautogui.press("left")
                         elif action == "right":
@@ -538,17 +533,17 @@ class GestureRecognitionApp:
                     # Body posture detection
                     pose_detected = response_data["data"].get("pose_detected", False)
                     logger.debug(f"Pose detected: {pose_detected}")
-                    
+
                     if pose_detected:
                         # Check if hands are joined
                         hands_joined = results.get("hands_joined", False)
                         logger.debug(f"Hands joined: {hands_joined}")
-                        
+
                         if hands_joined:
                             # Increment counter
                             self.counter += 1
                             logger.debug(f"Hands joined counter incremented: {self.counter}/{self.num_of_frames}")
-                            
+
                             # Check if counter reaches threshold
                             if self.counter == self.num_of_frames:
                                 # Start or resume the game
@@ -579,7 +574,7 @@ class GestureRecognitionApp:
                                         # Assume an average value for demo purposes
                                         self.MID_Y = frame_height // 2
                                         logger.warning(f"Fallback MID_Y set locally: {self.MID_Y}")
-                                    
+
                                     # Start the game by clicking at specified position
                                     pyautogui.click(x=1300, y=800, button="left")
                                     logger.info("Game started via hands joined gesture.")
@@ -587,7 +582,7 @@ class GestureRecognitionApp:
                                     # Resume the game after death
                                     pyautogui.press("space")
                                     logger.info("Game resumed via hands joined gesture.")
-                                
+
                                 # Reset counter
                                 self.counter = 0
                                 logger.debug("Counter reset after game start/resume.")
@@ -595,14 +590,14 @@ class GestureRecognitionApp:
                             # Reset counter if hands are not joined
                             self.counter = 0
                             logger.debug("Counter reset as hands are no longer joined.")
-                        
+
                         # Process game controls if game is started
                         if self.game_started and self.MID_Y:
                             # Check horizontal movement
                             horizontal_position = results.get("horizontal_position")
                             if horizontal_position:
                                 logger.debug(f"Horizontal position detected: {horizontal_position}")
-                                
+
                                 # Check if the person has moved left or right
                                 if (horizontal_position == "Left" and self.x_pos_index != 0) or (horizontal_position == "Center" and self.x_pos_index == 2):
                                     # Left movement
@@ -614,12 +609,12 @@ class GestureRecognitionApp:
                                     pyautogui.press("right")
                                     self.x_pos_index += 1
                                     logger.info("Action: Move right.")
-                            
+
                             # Check vertical movement
                             vertical_position = results.get("vertical_position")
                             if vertical_position:
                                 logger.debug(f"Vertical position detected: {vertical_position}")
-                                
+
                                 # Check if the person has jumped
                                 if vertical_position == "Jumping" and self.y_pos_index == 1:
                                     pyautogui.press("up")
@@ -634,13 +629,13 @@ class GestureRecognitionApp:
                                 elif vertical_position == "Standing" and self.y_pos_index != 1:
                                     self.y_pos_index = 1
                                     logger.info("Action: Stand.")
-                
+
                 # Prepare status info
                 status_info = f"Status: Processing frame via {api_type} API\n"
                 status_info += f"API URL: {api_url}\n"
                 status_info += f"Game started: {self.game_started}\n"
                 status_info += f"Gesture type: {self.gesture_type}\n"
-                
+
                 # Add gesture type specific info
                 if self.gesture_type == "hands":
                     status_info += f"Current state: {self.current_state[0]}\n"
@@ -648,16 +643,16 @@ class GestureRecognitionApp:
                     status_info += f"Pose detected: {response_data['data'].get('pose_detected', False)}\n"
                     status_info += f"MID_Y: {self.MID_Y}\n"
                     status_info += f"Counter: {self.counter}/{self.num_of_frames}\n"
-                
+
                 # Add results info
                 if results:
                     status_info += "Results:\n"
                     for key, value in results.items():
                         status_info += f"  {key}: {value}\n"
-                
+
                 logger.info("Frame processing completed successfully.")
                 return processed_frame, status_info
-            
+
             except Exception as e:
                 logger.error(f"Error during frame processing: {e!s}")
                 return frame, f"{api_type} Error in processing response: {e!s}"
@@ -666,31 +661,30 @@ class GestureRecognitionApp:
             error_msg = response_data.get("message", "Unknown error")
             logger.error(f"{api_type} API returned an error: {error_msg}")
             return frame, f"{api_type} API Error: {error_msg}"
-        
+
     def process_frame(self, frame):
-        """
-        Process a frame based on the selected client mode.
+        """Process a frame based on the selected client mode.
         
         Args:
             frame: The input frame from the camera.
             
         Returns:
             Tuple containing processed frame and status info.
+
         """
         logger.info("Processing frame based on client mode.")
-        
+
         if self.client_mode == "local":
             logger.debug("Client mode set to 'local'. Processing frame locally.")
             return self.process_frame_local(frame)
-        elif self.client_mode == "api":
+        if self.client_mode == "api":
             logger.debug("Client mode set to 'api'. Processing frame via FastAPI.")
             return self.process_frame_api_generic(frame, api_type="FastAPI")
-        elif self.client_mode == "bentoml":
+        if self.client_mode == "bentoml":
             logger.debug("Client mode set to 'bentoml'. Processing frame via BentoML.")
             return self.process_frame_api_generic(frame, api_type="BentoML")
-        else:
-            logger.error(f"Invalid client mode: {self.client_mode}")
-            return frame, "Error: Invalid client mode"
+        logger.error(f"Invalid client mode: {self.client_mode}")
+        return frame, "Error: Invalid client mode"
 
 
 # Initialize the app
@@ -720,7 +714,7 @@ def main():
     st.header("Step 2: Select Gesture Recognition Type")
     gesture_type = st.radio("Choose the gesture recognition type:", ["Body Posture", "Hands"])
     logger.info(f"User selected gesture recognition type: {gesture_type}")
-    
+
     app.set_gesture_type("Hands" if gesture_type == "Hands" else "Body Posture")
     logger.debug(f"Gesture type set to: {app.gesture_type}")
 
@@ -821,7 +815,7 @@ def main():
                     cap.release()
                     cv2.destroyAllWindows()
 
-                    
+
 # Run the Streamlit app
 if __name__ == "__main__":
     setup_logging("../utils/configs.toml")

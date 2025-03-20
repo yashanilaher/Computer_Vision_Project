@@ -1,9 +1,7 @@
 import cv2
-import mediapipe as mp
 import matplotlib.pyplot as plt
+import mediapipe as mp
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
 
 # Initialize mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -16,12 +14,11 @@ pose_video = mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detec
                           min_tracking_confidence=0.7)
 
 # Initialize mediapipe drawing class.
-mp_drawing = mp.solutions.drawing_utils 
+mp_drawing = mp.solutions.drawing_utils
 
 
 def checkJumpCrouch(image, results, MID_Y=250, draw=False, display=False):
-    '''
-    This function checks the posture (Jumping, Crouching or Standing) of the person in an image.
+    """This function checks the posture (Jumping, Crouching or Standing) of the person in an image.
     
     Args:
         image:   The input image with a prominent person whose posture needs to be checked.
@@ -34,8 +31,8 @@ def checkJumpCrouch(image, results, MID_Y=250, draw=False, display=False):
     Returns:
         output_image: The input image with the person's posture written, if specified.
         posture:      The detected posture (Jumping, Crouching, or Standing).
-    '''
 
+    """
     logger.debug("checkJumpCrouch() called. Processing frame...")
 
     # Get the height and width of the image.
@@ -66,15 +63,15 @@ def checkJumpCrouch(image, results, MID_Y=250, draw=False, display=False):
 
     # Determine posture based on threshold values
     if actual_mid_y < lower_bound:
-        posture = 'Jumping'
+        posture = "Jumping"
         logger.info("Posture detected: JUMPING")
 
     elif actual_mid_y > upper_bound:
-        posture = 'Crouching'
+        posture = "Crouching"
         logger.info("Posture detected: CROUCHING")
 
     else:
-        posture = 'Standing'
+        posture = "Standing"
         logger.info("Posture detected: STANDING")
 
     # Check if the posture and a horizontal line at the threshold should be drawn.
@@ -91,7 +88,7 @@ def checkJumpCrouch(image, results, MID_Y=250, draw=False, display=False):
         plt.figure(figsize=[10, 10])
         plt.imshow(output_image[:, :, ::-1])
         plt.title("Output Image")
-        plt.axis('off')
+        plt.axis("off")
         logger.debug("Displaying processed output image.")
 
     else:

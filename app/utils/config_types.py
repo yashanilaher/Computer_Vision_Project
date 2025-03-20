@@ -1,8 +1,9 @@
 # config_types.py
 
+import tomllib
 from pathlib import Path
 from typing import Literal
-import tomllib
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -19,7 +20,7 @@ class LoggingConfigs(BaseModel):
 
     # Logging settings
     min_log_level: Literal[
-        "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL"
+        "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL",
     ] = "DEBUG"
     log_server_port: int = 9999
     server_log_format: str = "[{level}] | {message}"

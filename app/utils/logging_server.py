@@ -1,26 +1,27 @@
 # logging_server.py
 
 import argparse
-from pathlib import Path
-import zmq
-from loguru import logger
-from config_types import LoggingConfigs
 import os
+from pathlib import Path
+
+import zmq
+from config_types import LoggingConfigs
+from loguru import logger
 
 
 def set_logging_configs(logging_configs: LoggingConfigs) -> None:
-    """
-    Configure the logging server with the provided settings.
+    """Configure the logging server with the provided settings.
 
     Args:
         logging_configs: Configuration for logging (e.g., file name, rotation, etc.).
+
     """
     # Remove the default logger configuration
     logger.remove()
 
     # Get the absolute path to the log file in utils/logs/
     log_file_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), logging_configs.log_file_name)
+        os.path.join(os.path.dirname(__file__), logging_configs.log_file_name),
     )
     print(f"Logging to: {log_file_path}")
 
@@ -39,11 +40,11 @@ def set_logging_configs(logging_configs: LoggingConfigs) -> None:
 
 
 def start_logging_server(logging_configs: LoggingConfigs) -> None:
-    """
-    Start the logging server to receive log messages from clients.
+    """Start the logging server to receive log messages from clients.
 
     Args:
         logging_configs: Configuration for logging (e.g., server port).
+
     """
     # Create a ZeroMQ socket for subscribing to log messages
     socket = zmq.Context().socket(zmq.SUB)

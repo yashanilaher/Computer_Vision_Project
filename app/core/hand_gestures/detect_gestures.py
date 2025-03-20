@@ -1,53 +1,50 @@
-import pyautogui
 import time
+
+import pyautogui
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
 
 from . import (
-    mp_hands,
-    thumb_up_cooldown,
     cooldown,
-    jump_threshold,
-    left_threshold,
-    right_threshold,
-    down_threshold,
     current_state,
-    in_neutral_zone,
+    down_threshold,
     hand_positions_data,
-    state_start_time,
+    in_neutral_zone,
+    jump_threshold,
+    last_action_time,
+    left_threshold,
+    mp_hands,
     reference_hand_x,
     reference_hand_y,
-    last_action_time,
+    right_threshold,
+    state_start_time,
+    thumb_up_cooldown,
 )
-
-from .update_hand_history import update_hand_history
 from .is_in_neutral_zone import is_in_neutral_zone
 from .is_thumb_up import is_thumb_up
 from .pydantic_models import GestureDetectionResult
+from .update_hand_history import update_hand_history
 
 
 def detect_gestures(hand_landmarks) -> GestureDetectionResult:
-    """
-    Detect gestures based on hand landmarks and perform corresponding actions.
+    """Detect gestures based on hand landmarks and perform corresponding actions.
 
     Args:
         hand_landmarks: The landmarks detected from the hand.
 
     Returns:
         GestureDetectionResult: Result containing debug info and detected actions.
+
     """
-    
     logger.debug("detect_gestures() called. Processing hand landmarks...")
 
     # Extract key points from hand landmarks
     wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-    
+
     # Calculate hand center position
     hand_x = wrist.x
     hand_y = wrist.y
     logger.info(f"Hand position detected: x={hand_x}, y={hand_y}")
-    
+
     # Update hand position history
     update_hand_history(hand_x, hand_y)
     logger.debug("Hand position history updated.")
@@ -55,7 +52,7 @@ def detect_gestures(hand_landmarks) -> GestureDetectionResult:
     # Check if the hand is in the neutral zone
     now_in_neutral = is_in_neutral_zone(hand_x, hand_y).neutral_zone_check
     logger.info(f"Hand in neutral zone: {now_in_neutral}")
-    
+
     # Debug info initialization
     debug_info = GestureDetectionResult(
         hand_x=hand_x,
@@ -67,7 +64,7 @@ def detect_gestures(hand_landmarks) -> GestureDetectionResult:
         dx=None,
         dy=None,
     )
-    
+
     # State machine logic
     current_time = time.time()
 
@@ -91,7 +88,7 @@ def detect_gestures(hand_landmarks) -> GestureDetectionResult:
         reference_hand_y[0] = hand_y
         hand_positions_data.hand_positions.clear()
         logger.info("Neutral zone entered. Reference position stored.")
-    
+
     # Update neutral zone status
     in_neutral_zone[0] = now_in_neutral
 

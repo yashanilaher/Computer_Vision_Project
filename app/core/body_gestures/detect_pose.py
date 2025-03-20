@@ -1,9 +1,7 @@
 import cv2
-import mediapipe as mp
 import matplotlib.pyplot as plt
+import mediapipe as mp
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
 
 # Initialize mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -16,12 +14,11 @@ pose_video = mp_pose.Pose(static_image_mode=False, model_complexity=1, min_detec
                           min_tracking_confidence=0.7)
 
 # Initialize mediapipe drawing class.
-mp_drawing = mp.solutions.drawing_utils 
+mp_drawing = mp.solutions.drawing_utils
 
 
 def detectPose(image, pose, draw=False, display=False):
-    '''
-    This function performs the pose detection on the most prominent person in an image.
+    """This function performs the pose detection on the most prominent person in an image.
 
     Args:
         image:   The input image with a prominent person whose pose landmarks need to be detected.
@@ -32,13 +29,13 @@ def detectPose(image, pose, draw=False, display=False):
     Returns:
         output_image: The input image with the detected pose landmarks drawn if specified.
         results:      The output of the pose landmarks detection on the input image.
-    '''
 
+    """
     logger.debug("detectPose() called. Processing frame...")
 
     # Create a copy of the input image.
     output_image = image.copy()
-    
+
     # Convert the image from BGR into RGB format.
     imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     logger.debug("Converted image to RGB format.")
@@ -69,12 +66,12 @@ def detectPose(image, pose, draw=False, display=False):
         plt.subplot(121)
         plt.imshow(image[:, :, ::-1])
         plt.title("Original Image")
-        plt.axis('off')
+        plt.axis("off")
 
         plt.subplot(122)
         plt.imshow(output_image[:, :, ::-1])
         plt.title("Output Image")
-        plt.axis('off')
+        plt.axis("off")
 
         logger.debug("Displaying original and processed images.")
 

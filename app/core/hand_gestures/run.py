@@ -1,18 +1,24 @@
 import cv2
-import mediapipe as mp
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
 
-from . import cap, hands, mp_hands, mp_drawing
+from . import (
+    cap,
+    current_state,
+    debug,
+    hands,
+    in_neutral_zone,
+    mp_drawing,
+    mp_hands,
+    neutral_zone_size,
+    neutral_zone_x,
+    neutral_zone_y,
+)
 from .detect_gestures import detect_gestures
-from . import neutral_zone_size, neutral_zone_x, neutral_zone_y, in_neutral_zone, current_state, debug
 from .pydantic_models import GestureDetectionResult
 
 
 def run():
-    """
-    Run the hand gesture game controller.
+    """Run the hand gesture game controller.
     """
     logger.info("Starting hand gesture game controller...")
 
@@ -39,7 +45,7 @@ def run():
 
             # Initialize debug info
             debug_info = GestureDetectionResult(
-                hand_x=0, hand_y=0, in_neutral=False, state="neutral", thumb_up=False, action=None, dx=None, dy=None
+                hand_x=0, hand_y=0, in_neutral=False, state="neutral", thumb_up=False, action=None, dx=None, dy=None,
             )
 
             # Draw hand landmarks on the image
@@ -51,7 +57,7 @@ def run():
                     mp_drawing.draw_landmarks(
                         image,
                         hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS
+                        mp_hands.HAND_CONNECTIONS,
                     )
                     logger.debug("Hand landmarks drawn on the image.")
 
@@ -70,7 +76,7 @@ def run():
                 (center_x - zone_size_x, center_y - zone_size_y),
                 (center_x + zone_size_x, center_y + zone_size_y),
                 (0, 255, 0) if in_neutral_zone else (0, 0, 255),
-                2
+                2,
             )
             logger.debug("Neutral zone drawn on the image.")
 
@@ -84,7 +90,7 @@ def run():
                 "Move hand left/right to turn",
                 "Move hand down to slide",
                 "Move hand up to jump",
-                "Thumb up to press space"
+                "Thumb up to press space",
             ]
 
             y_pos = 60
@@ -108,10 +114,10 @@ def run():
                     y_pos += 25
 
             # Show the image
-            cv2.imshow('Hand Gesture Game Controller', image)
+            cv2.imshow("Hand Gesture Game Controller", image)
 
             # Break the loop if 'q' is pressed
-            if cv2.waitKey(5) & 0xFF == ord('q'):
+            if cv2.waitKey(5) & 0xFF == ord("q"):
                 logger.info("Exiting application. 'q' key pressed.")
                 break
 

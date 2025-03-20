@@ -1,10 +1,9 @@
-import cv2
-import mediapipe as mp
 from math import hypot
+
+import cv2
 import matplotlib.pyplot as plt
+import mediapipe as mp
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
 
 # Initialize mediapipe pose class.
 mp_pose = mp.solutions.pose
@@ -21,18 +20,19 @@ mp_drawing = mp.solutions.drawing_utils
 
 
 def checkHandsJoined(image, results, draw=False, display=False):
-    '''
-    This function checks whether the hands of the person are joined or not in an image.
+    """This function checks whether the hands of the person are joined or not in an image.
+
     Args:
         image:   The input image with a prominent person whose hands status (joined or not) needs to be classified.
         results: The output of the pose landmarks detection on the input image.
         draw:    A boolean value that is if set to true the function writes the hands status & distance on the output image. 
         display: A boolean value that is if set to true the function displays the resultant image and returns nothing.
+
     Returns:
         output_image: The same input image but with the classified hands status written, if it was specified.
         hand_status:  The classified status of the hands whether they are joined or not.
-    '''
-    
+
+    """
     logger.debug("checkHandsJoined() called. Processing frame...")
 
     # Get the height and width of the input image.
@@ -74,24 +74,24 @@ def checkHandsJoined(image, results, draw=False, display=False):
     # Compare the normalized distance with a threshold to check if both hands are joined.
     if normalized_distance < 0.5:  # Adjust this threshold as needed.
         # Set the hands status to joined.
-        hand_status = 'Hands Joined'
+        hand_status = "Hands Joined"
         # Set the color value to green.
         color = (0, 255, 0)
         logger.info("Hands are joined.")
     else:
         # Set the hands status to not joined.
-        hand_status = 'Hands Not Joined'
+        hand_status = "Hands Not Joined"
         # Set the color value to red.
         color = (0, 0, 255)
         logger.info("Hands are not joined.")
 
     # Check if the Hands Joined status and hands distance are specified to be written on the output image.
     if draw:
-        # Write the classified hands status on the image. 
+        # Write the classified hands status on the image.
         cv2.putText(output_image, hand_status, (10, 30), cv2.FONT_HERSHEY_PLAIN, 2, color, 3)
-        
-        # Write the distance between the wrists on the image. 
-        cv2.putText(output_image, f'Distance: {euclidean_distance}', (10, 70),
+
+        # Write the distance between the wrists on the image.
+        cv2.putText(output_image, f"Distance: {euclidean_distance}", (10, 70),
                     cv2.FONT_HERSHEY_PLAIN, 2, color, 3)
         logger.debug(f"Drawing status on image: {hand_status}, Distance: {euclidean_distance}")
 
@@ -101,7 +101,7 @@ def checkHandsJoined(image, results, draw=False, display=False):
         plt.figure(figsize=[10, 10])
         plt.imshow(output_image[:, :, ::-1])
         plt.title("Output Image")
-        plt.axis('off')
+        plt.axis("off")
         logger.debug("Displaying output image with annotated information.")
 
     else:

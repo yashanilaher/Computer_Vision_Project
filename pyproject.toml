@@ -20,5 +20,5 @@ dependencies = [
     "locust>=2.33.2",
 ]
 
-[ruff.tool]
+[tool.ruff]
 select = ["ALL"]

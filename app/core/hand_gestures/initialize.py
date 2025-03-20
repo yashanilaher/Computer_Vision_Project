@@ -1,16 +1,15 @@
 import mediapipe as mp
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
+
 from .pydantic_models import HandsOutputModel
 
 
 def initialize_hands() -> HandsOutputModel:
-    """
-    Initialize the Mediapipe Hands module with specified parameters.
+    """Initialize the Mediapipe Hands module with specified parameters.
 
     Returns:
         HandsOutputModel: An object containing the initialized hands module and drawing utilities.
+
     """
     logger.debug("initialize_hands() called. Initializing Mediapipe Hands...")
 
@@ -24,7 +23,7 @@ def initialize_hands() -> HandsOutputModel:
             min_tracking_confidence=0.7,
         )
         logger.info("Mediapipe Hands module initialized successfully.")
-        
+
         # Initialize Mediapipe drawing utilities
         mp_drawing = mp.solutions.drawing_utils
         logger.info("Mediapipe Drawing utilities initialized successfully.")

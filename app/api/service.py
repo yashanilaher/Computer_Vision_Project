@@ -1,34 +1,32 @@
 
 
+import base64
+import os
+import sys
+from typing import Any
+
 import bentoml
 import cv2
-import numpy as np
-import base64
 import mediapipe as mp
-from typing import Dict, Any, Optional
+import numpy as np
 from pydantic import BaseModel, Field
-import sys
-import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from loguru import logger
-from utils.config_types import LoggingConfigs
-from utils.logging_client import setup_network_logger_client
-
 
 with bentoml.importing():
-    from core.body_gestures.detect_pose import detectPose
     from core.body_gestures.check_hands_joined import checkHandsJoined
     from core.body_gestures.check_horizontal_movement import checkLeftRight
     from core.body_gestures.check_vertical_movement import checkJumpCrouch
-    # Import hand gesture functions
-    from core.hand_gestures.initialize import initialize_hands
+    from core.body_gestures.detect_pose import detectPose
     from core.hand_gestures.detect_gestures import detect_gestures
+
+    # Import hand gesture functions
 
 # Define request model
 class ProcessFrameRequest(BaseModel):
     image: str = Field(..., description="Base64 encoded image")
-    mid_y: Optional[int] = Field(None, description="Reference Y-coordinate for vertical movement detection")
+    mid_y: int | None = Field(None, description="Reference Y-coordinate for vertical movement detection")
     game_started: bool = Field(False, description="Whether the game has started")
     gesture_type: str = Field("body", description="Type of gesture recognition (body or hands)")
 
@@ -36,7 +34,7 @@ class ProcessFrameRequest(BaseModel):
 class GestureResponse(BaseModel):
     success: bool
     message: str
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 # Initialize mediapipe pose class
 mp_pose = mp.solutions.pose
@@ -44,7 +42,7 @@ pose_video = mp_pose.Pose(
     static_image_mode=False,
     model_complexity=1,
     min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
+    min_tracking_confidence=0.7,
 )
 
 # Initialize mediapipe hands class
@@ -54,7 +52,7 @@ hands = mp_hands.Hands(
     static_image_mode=False,
     max_num_hands=1,
     min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
+    min_tracking_confidence=0.7,
 )
 
 # Define a BentoML service using the v0.x syntax
@@ -68,7 +66,7 @@ class GestureRecognitionService:
         self.hands = hands
         self.mp_drawing = mp_drawing
         self.mp_hands = mp_hands
-        
+
         # Hand gesture specific variables
         self.neutral_zone_size = 0.1
         self.neutral_zone_x = 0.5
@@ -77,9 +75,8 @@ class GestureRecognitionService:
         self.current_state = "neutral"
 
     @bentoml.api
-    def process_frame(self, input_data: ProcessFrameRequest) -> Dict:
-        """
-        Process a video frame and return gesture recognition results.
+    def process_frame(self, input_data: ProcessFrameRequest) -> dict:
+        """Process a video frame and return gesture recognition results.
         """
         try:
             logger.info(f"Processing frame. Gesture Type: {input_data.gesture_type}, Game Started: {input_data.game_started}")
@@ -98,15 +95,14 @@ class GestureRecognitionService:
             # Process the frame based on gesture type
             if gesture_type == "hands":
                 return self.process_hand_gestures(frame, input_data)
-            else:
-                return self.process_body_posture(frame, input_data)
+            return self.process_body_posture(frame, input_data)
         except Exception as e:
-            logger.error(f"Error processing frame: {str(e)}")
+            logger.error(f"Error processing frame: {e!s}")
             return {
                 "success": False,
-                "message": f"Error processing frame: {str(e)}",
+                "message": f"Error processing frame: {e!s}",
             }
-    
+
     def process_hand_gestures(self, frame, input_data: ProcessFrameRequest):
         """Process frame using hand gesture recognition"""
         try:
@@ -126,9 +122,9 @@ class GestureRecognitionService:
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
                     self.mp_drawing.draw_landmarks(
-                        frame, 
-                        hand_landmarks, 
-                        self.mp_hands.HAND_CONNECTIONS
+                        frame,
+                        hand_landmarks,
+                        self.mp_hands.HAND_CONNECTIONS,
                     )
                     # Detect gestures and control the game
                     debug_info = detect_gestures(hand_landmarks)
@@ -141,7 +137,7 @@ class GestureRecognitionService:
             zone_size_x = int(image_width * self.neutral_zone_size)
             zone_size_y = int(image_height * self.neutral_zone_size)
             in_neutral = debug_info.in_neutral if debug_info else False
-            cv2.rectangle(frame, 
+            cv2.rectangle(frame,
                         (center_x - zone_size_x, center_y - zone_size_y),
                         (center_x + zone_size_x, center_y + zone_size_y),
                         (0, 255, 0) if in_neutral else (0, 0, 255),
@@ -150,7 +146,7 @@ class GestureRecognitionService:
             if debug_info:
                 self.current_state = debug_info.state
             # Display current state
-            cv2.putText(frame, f"State: {self.current_state}", (10, 30), 
+            cv2.putText(frame, f"State: {self.current_state}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
             # Encode the processed frame as base64
             _, buffer = cv2.imencode(".jpg", frame)
@@ -164,7 +160,7 @@ class GestureRecognitionService:
                     "action": action,
                     "state": debug_info.state,
                     "in_neutral": debug_info.in_neutral,
-                    "thumb_up": debug_info.thumb_up
+                    "thumb_up": debug_info.thumb_up,
                 }
                 # Add movement vector if available
                 if debug_info.dx is not None:
@@ -176,16 +172,16 @@ class GestureRecognitionService:
                 "data": {
                     "frame": encoded_frame,
                     "results": frame_results,
-                    "current_state": self.current_state
+                    "current_state": self.current_state,
                 },
             }
         except Exception as e:
-            logger.error(f"Error processing hand gestures: {str(e)}")
+            logger.error(f"Error processing hand gestures: {e!s}")
             return {
                 "success": False,
-                "message": f"Error processing hand gestures: {str(e)}",
+                "message": f"Error processing hand gestures: {e!s}",
             }
-    
+
     def process_body_posture(self, frame, input_data: ProcessFrameRequest):
         """Process frame using body posture recognition"""
         try:
@@ -227,16 +223,15 @@ class GestureRecognitionService:
                 },
             }
         except Exception as e:
-            logger.error(f"Error processing body posture: {str(e)}")
+            logger.error(f"Error processing body posture: {e!s}")
             return {
                 "success": False,
-                "message": f"Error processing body posture: {str(e)}",
+                "message": f"Error processing body posture: {e!s}",
             }
 
     @bentoml.api
-    def calculate_reference(self, input_data: Dict) -> Dict:
-        """
-        Calculate the reference Y-coordinate for vertical movement detection.
+    def calculate_reference(self, input_data: dict) -> dict:
+        """Calculate the reference Y-coordinate for vertical movement detection.
         """
         try:
             logger.info("Calculating reference Y-coordinate...")
@@ -276,8 +271,8 @@ class GestureRecognitionService:
                 "data": {"mid_y": mid_y},
             }
         except Exception as e:
-            logger.error(f"Error calculating reference: {str(e)}")
+            logger.error(f"Error calculating reference: {e!s}")
             return {
                 "success": False,
-                "message": f"Error calculating reference: {str(e)}",
+                "message": f"Error calculating reference: {e!s}",
             }

@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field 
-from typing import List, Tuple, Optional ,Dict, Any
+
+from pydantic import BaseModel, Field
+
 
 class HandPositionsModel(BaseModel):
-    hand_positions: List[Tuple[float, float]] = Field(...)
+    hand_positions: list[tuple[float, float]] = Field(...)
 
 class MovementVectorModel(BaseModel):
     x: float
@@ -36,6 +37,6 @@ class GestureDetectionResult(BaseModel):
     in_neutral: bool
     state: str
     thumb_up: bool
-    action: Optional[str] = None
-    dx: Optional[float] = None
-    dy: Optional[float] = None
+    action: str | None = None
+    dx: float | None = None
+    dy: float | None = None

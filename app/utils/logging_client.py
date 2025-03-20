@@ -3,6 +3,7 @@
 from __future__ import annotations  # Needed for type hints
 
 from typing import TYPE_CHECKING
+
 import zmq
 from zmq.log.handlers import PUBHandler
 
@@ -12,12 +13,12 @@ if TYPE_CHECKING:
 
 
 def setup_network_logger_client(logging_configs: LoggingConfigs, logger: Logger) -> None:
-    """
-    Set up a network logger client that sends log messages to a logging server.
+    """Set up a network logger client that sends log messages to a logging server.
 
     Args:
         logging_configs: Configuration for logging (e.g., server port).
         logger: The logger instance to configure.
+
     """
     # Create a ZeroMQ socket for publishing logs
     zmq_socket = zmq.Context().socket(zmq.PUB)
