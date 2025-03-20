@@ -17,6 +17,7 @@ dependencies = [
     "logger>=1.4",
     "loguru>=0.7.3",
     "mkdocs-material>=9.6.9",
+    "locust>=2.33.2",
 ]
 
 [ruff.tool]
