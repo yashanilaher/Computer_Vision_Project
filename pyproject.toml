@@ -18,6 +18,7 @@ dependencies = [
     "loguru>=0.7.3",
     "mkdocs-material>=9.6.9",
     "locust>=2.33.2",
+    "just>=0.8.162",
 ]
 
 [tool.ruff]
