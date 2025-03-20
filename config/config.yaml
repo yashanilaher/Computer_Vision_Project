@@ -1,0 +1,37 @@
+# Gesture Recognition Service Configuration
+
+gesture:
+  min_detection_confidence: 0.7
+  min_tracking_confidence: 0.7
+  model_complexity: 1
+  static_image_mode: false
+
+api:
+  # FastAPI configuration
+  host: "0.0.0.0"
+  port: 8000
+  prefix: ""
+  enable_cors: true
+  allowed_origins:
+    - "*"
+
+bentoml:
+  # BentoML configuration
+  host: "0.0.0.0"
+  port: 8001
+  workers: 2
+
+# Gesture types configuration
+gesture_types:
+  body:
+    enabled: true
+  hands:
+    enabled: true
+
+# Logging configuration
+logging:
+  level: "DEBUG"  # Base logging level
+  console_level: "INFO"  # Log level for console
+  file_level: "DEBUG"  # Log level for file
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  datefmt: "%Y-%m-%d %H:%M:%S"

@@ -1,0 +1,12 @@
+# configs.toml
+
+# Logging configuration
+min_log_level = "DEBUG"  # Only logs above this level will be logged
+log_server_port = 9999  # Port for the logging server
+client_log_format = "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {file}:{function}:{line} | {message}"
+server_log_format = "[{level}] | {message}"
+log_rotation = "00:00"  # Rotate logs at midnight
+log_file_name = "logs/logs.txt"  # Path to the log file
+log_compression = "zip"  # Compress rotated logs
+
+
