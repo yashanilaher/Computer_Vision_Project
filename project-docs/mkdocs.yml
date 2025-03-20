@@ -1,0 +1,30 @@
+site_name: Gesture Control Game Documentation
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Usage: usage.md
+  - Features: features.md
+  - API Documentation: api.md
+  - Load Testing: load_testing.md
+  - Architecture: architecture.md
+theme: readthedocs
+theme:
+  name: material
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.tooltips
+    - content.tabs.link
+    - content.code.render
+    - content.code.highlight
+    - content.code.prettify
+markdown_extensions:
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
