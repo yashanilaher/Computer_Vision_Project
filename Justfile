@@ -28,3 +28,5 @@ run-mkdocs:
 run-ruff:
 	uv run ruff check
 
+run-locust:
+	uv run locust -f locust.py
