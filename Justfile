@@ -29,4 +29,4 @@ run-ruff:
 	uv run ruff check
 
 run-locust:
-	uv run locust -f locust.py
+	uv run locust -f locust.py -u 1000 -r 10

@@ -7,12 +7,13 @@ Follow these steps to set up the **Gesture Control Game** project on your local 
 - Python 3.8 or higher
 - Webcam
 - Git
+- Just
 
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-repo/gesture-control-game.git
-cd gesture-control-game
+git clone https://github.com/yashanilaher/Computer_Vision_Project.git
+cd Computer_Vision_Project/
 ```
 
 ## Step 2: Install Dependencies
@@ -20,7 +21,7 @@ cd gesture-control-game
 Install the required Python libraries using the following command:
 
 ```bash
-pip install -r requirements.txt
+just setup
 ```
 
 The required libraries include:
@@ -30,23 +31,52 @@ The required libraries include:
 - `mediapipe`
 - `matplotlib`
 
-## Step 3: Run the Application
+## Step 3: Run the Application  
+To start the application, use one of the following commands based on your requirements:
 
-To start the application, run the following command:
-
+#### 1. Start the FastAPI Server  
+This command starts the FastAPI server for processing gestures via an API.  
 ```bash
-python main.py
+just run-fastapi
 ```
+- **Purpose**: Runs the `server.py` file located in `app/api/`.
+- **Details**: Stops any existing instance of `server.py` before starting a new one.
 
-## Step 4: Play the Game
+#### 2. Start the Streamlit GUI  
+This command starts the Streamlit GUI for the game interface.  
+```bash
+just run-gui
+```
+- **Purpose**: Runs the `main_window.py` file located in `app/gui/`.
+- **Details**:
+  - Stops any existing Streamlit instance running `main_window.py`.
+  - Starts a new Streamlit instance for the game's graphical interface.
 
-1. Open Poki Games and choose **Subway Surfers** or **Temple Run**.
-2. Use the following gestures to control the game:
+#### 3. Start the BentoML Server  
+This command starts the BentoML server for serving the gesture recognition model.  
+```bash
+just serve-bm
+```
+- **Purpose**: Runs the `service.py` file located in `app/api/`.
+- **Details**: Stops any existing instance of `service.py` before starting a new one.
 
-   - **Start/Resume Game:** Use body posture (join hands) or hand gestures (thumbs up).
-   - **Move Left/Right:** Use body posture (lean left/right) or hand gestures (move hand left/right).
-   - **Jump:** Use body posture (stand on tiptoes) or hand gestures (move hand up).
-   - **Crouch/Slide:** Use body posture (crouch down) or hand gestures (move hand down).
+#### 4. Start the Documentation Server  
+This command starts the MkDocs server to view the project documentation locally.  
+```bash
+just run-mkdocs
+```
+- **Purpose**: Serves the documentation using the `mkdocs.yml` configuration file.
+- **Details**: Stops any existing instance of `mkdocs serve` before starting a new one.
+
+#### 5. Run Ruff Linter  
+This command checks the codebase for linting errors using Ruff.  
+```bash
+just run-ruff
+```
+- **Purpose**: Ensures the code adheres to coding standards and best practices.
+- **Details**: Runs `ruff check` on the entire project.
+
+---
 
 ## Running in Docker or with GUI Issues
 
@@ -57,6 +87,18 @@ xhost +local:
 ```
 
 This grants local access to the X server, which is required for displaying images in restricted environments.
+
+
+
+## Explanation of Commands  
+| Command | Description |
+|---------|-------------|
+| `just run-fastapi` | Starts the FastAPI server for gesture recognition. |
+| `just run-gui` | Launches the Streamlit GUI for interacting with the game. |
+| `just serve-bm` | Starts the BentoML server for serving the gesture recognition model. |
+| `just run-mkdocs` | Serves the project documentation locally using MkDocs. |
+| `just run-ruff` | Checks the codebase for linting errors using Ruff. |
+
 
 ## Next Steps
 
